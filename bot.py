@@ -141,37 +141,42 @@ async def extract_match_info(match_data, puuid):
         }
     return None
 
-# Função para monitorar as partidas de um jogador com cache aprimorado
+# Cache para armazenar o último match ID enviado para cada jogador
+last_match_ids = {}
+
+# Função para monitorar as partidas de um jogador
 async def monitor_player_matches(puuid):
     global notification_channel_id
     match_ids = await get_recent_matches(puuid)
     if match_ids:
-        new_matches = [match_id for match_id in match_ids if match_id not in match_cache.get(puuid, [])]
-        if new_matches:
-            match_cache[puuid] = new_matches[:5]  # Limitar o cache às 5 partidas mais recentes
-            for match_id in new_matches:
-                match_data = await get_match_details(match_id)
-                if match_data:
-                    match_info = await extract_match_info(match_data, puuid)
+        current_match_id = match_ids[0]
 
-                    if match_info:
-                        channel = client.get_channel(notification_channel_id)
-                        if channel:
-                            embed_color = discord.Color.blue() if match_info['win'] else discord.Color.red()
+        # Verifica se o último ID de partida enviado é diferente do atual
+        if last_match_ids.get(puuid) != current_match_id:
+            last_match_ids[puuid] = current_match_id  # Atualiza o último ID de partida
 
-                            embed = discord.Embed(
-                                title=f"{match_info['invoker']} tentou jogar de {match_info['champion']}",
-                                description="saiu do inferno (voltar em breve ass: demonio 👹)",
-                                color=embed_color
-                            )
-                            embed.add_field(
-                                name=f"Resultado: {match_info['status']}",
-                                value=f"KDA: {match_info['kda']}\n{match_info['game_mode']} de cria",
-                                inline=False
-                            )
-                            embed.set_image(url=match_info['image_url'])
+            match_data = await get_match_details(current_match_id)
+            if match_data:
+                match_info = await extract_match_info(match_data, puuid)
 
-                            await channel.send(embed=embed)
+                if match_info:
+                    channel = client.get_channel(notification_channel_id)
+                    if channel:
+                        embed_color = discord.Color.blue() if match_info['win'] else discord.Color.red()
+
+                        embed = discord.Embed(
+                            title=f"{match_info['invoker']} tentou jogar de {match_info['champion']}",
+                            description="saiu do inferno (voltar em breve ass: demonio 👹)",
+                            color=embed_color
+                        )
+                        embed.add_field(
+                            name=f"Resultado: {match_info['status']}",
+                            value=f"KDA: {match_info['kda']}\n{match_info['game_mode']} de cria",
+                            inline=False
+                        )
+                        embed.set_image(url=match_info['image_url'])
+
+                        await channel.send(embed=embed)
 
 # Função para monitorar todas as contas registradas
 async def monitor_all_matches():
