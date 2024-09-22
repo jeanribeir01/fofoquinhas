@@ -163,9 +163,15 @@ async def monitor_player_matches(puuid):
                     channel = client.get_channel(notification_channel_id)
                     if channel:
                         embed_color = discord.Color.blue() if match_info['win'] else discord.Color.red()
+                        
+                        # Define o título com base na vitória ou derrota
+                        if match_info['win']:
+                            title = f"{match_info['invoker']} amassou de {match_info['champion']}"
+                        else:
+                            title = f"{match_info['invoker']} se fudeu de {match_info['champion']}"
 
                         embed = discord.Embed(
-                            title=f"{match_info['invoker']} tentou jogar de {match_info['champion']}",
+                            title=title,
                             description="saiu do inferno (voltar em breve ass: demonio 👹)",
                             color=embed_color
                         )
