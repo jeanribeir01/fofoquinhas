@@ -222,13 +222,34 @@ async def registrar(interaction: discord.Interaction, riot_id: str, tagline: str
     else:
         await interaction.followup.send("Não foi possível encontrar a conta especificada. Verifique o Riot ID e o Tagline.")
 
-# Comando para definir o canal de notificações
+# Comando para definir o canal de notificações (somente administradores)
 @client.tree.command(name="set_channel", description="Definir o canal onde as notificações serão enviadas")
+@commands.has_permissions(administrator=True)  # Apenas administradores podem usar
 async def set_channel(interaction: discord.Interaction):
     global notification_channel_id
     notification_channel_id = interaction.channel.id
     save_notification_channel(notification_channel_id)
     await interaction.response.send_message(f"Canal de notificações configurado para {interaction.channel.mention}")
+
+# Tratamento de erro para comandos de permissão
+@set_channel.error
+async def set_channel_error(interaction: discord.Interaction, error):
+    if isinstance(error, commands.MissingPermissions):
+        await interaction.response.send_message("Você não tem permissão para usar este comando.")
+
+# Comando para fornecer um tutorial
+@client.tree.command(name="tutorial", description="Explica como usar o comando /registrar")
+async def tutorial(interaction: discord.Interaction):
+    tutorial_message = (
+        "**Como se registrar-se a si mesmo**\n\n"
+        "Para se registrar, você deve usar o comando `/registrar` seguido do seu NOME DO LOL e da TAGLINE (SEM O HASHTAG - #).\n"
+        "Exemplo: `/registrar NomeDoLol TagName`\n\n"
+        "A fofoqueira irá buscar as informações da conta e, se encontrada, irá registrá-la para monitoramento de partidas.\n"
+        "Após o registro, a fofoqueira começará a monitorar as partidas desse jogador.\n"
+        "Se você tiver mais alguma dúvida, sinta-se à vontade para perguntar!\n"
+        "Sugestoes apenas por 10 reais no pix"
+    )
+    await interaction.response.send_message(tutorial_message)
 
 # Função principal
 async def main():
