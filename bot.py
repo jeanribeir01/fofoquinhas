@@ -54,7 +54,7 @@ cache_expiration_minutes = 10  # Expira em 10 minutos por padrão
 last_match_ids = {}
 
 # Intervalo configurável de monitoramento (em segundos)
-monitoring_interval = 60  # Padrão: 60 segundos
+monitoring_interval = 300  # Padrão: 300 segundos
 
 class MyClient(discord.Client):
     def __init__(self):
